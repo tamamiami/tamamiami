@@ -1,0 +1,34 @@
+language:
+  - ruby
+  - java
+jdk: openjdk8
+cache:
+  bundler: true
+install: time bundle install --local
+script: time bundle exec rake build test
+before_install:
+  - gem install bundler -v '= 1.14.6'
+
+after_success:
+  - env | grep TRAVIS
+  - echo "$FASTLY_KEY" | wc -c
+  - echo "$AWS_ACCESS_KEY" | wc -c
+  - echo "$AWS_SECRET" | wc -c
+  - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]];  then echo "Not deploying a pull request.";
+    exit 0; fi
+  - if [[ "$TRAVIS_BRANCH"       != "master" ]]; then echo "Not deploying a branch.";       exit
+    0; fi
+  - time bundle exec rake s3 purge
+notifications:
+  email:
+    on_success: always
+    recipients:
+      - me@tammersaleh.com
+env:
+  global:
+    FASTLY_KEY:
+      secure: a+2G/CaMPhzxrHINTDfR3u4ArBQqETOmGv0aTArHo1p6mJoI8Ih5nNRXDz49Y+3OqAFjv8/IZgSs6ba0disxkw3ZF26Iw22MMul73ToKwv6FGLgycdI4SqAVuAKLMMzl9yjK3fR8oPLvy8x3AhGcz0BIN8C+ZiuBS/lscf7dtt8=
+    AWS_ACCESS_KEY:
+      secure: l0fzXZ1o6tfpxS5d5p043v5J4H+HNj1OQIp6Bm5cgqgEuHpotRhfwG/ptV3GnbyXSf9mwsj1jVDyEsp9lLuVCVCsM+YdC//je/hlPwd5mI2SW2uTDuoMMMFac/lHHfI3DsyQZztcrL9NpDKsCshUSTNd2/GgGtwiTTZdoIulmOY=
+    AWS_SECRET:
+      secure: Xa60QbQsH3oj7EZ4vkcLBB13scFBjritpRbZ28eVsuvwPO6we+6834LbXsgn1RdvgYKR4mVhI3RLf2ib6yNH4IZYf6RrTO+MPq/pHCtNTp+bTpxcynNYmNhJCT3FZsdyZhknjwTudhZ3e492Uqumj0sxa/IUncxe3PjVwMRhzWQ=
